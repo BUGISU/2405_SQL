@@ -13,7 +13,7 @@ where ename like 'ALL%';
 
 select *
 from emp
-where ENAME in upper('a');
+where ENAME in upper('A%');
 
 select ename, sal, deptno
 from emp

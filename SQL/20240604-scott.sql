@@ -387,11 +387,9 @@ begin
     EXCEPTION when no_data_found then DBMS_OUTPUT.PUT_LINE('데이터 없음');
 end;
 /
+set serveroutput on;
 -------------------------------------------------------------------------------
 -- p518 19장 연습문제
---1 
-
---2
 -- 함수 func_date_kor ==> YYYY년 MM월 DD 일 형태로 출력
 create or replace function func_data_kor (
     p_hire in varchar2
@@ -426,27 +424,76 @@ select ename, func_data_kor(hiredate) as hiredate
 from emp
 where empno = 7369;
 --------------------------------------------------------------------------
+--프로시저 선언
 create or replace procedure pro_dept_in(
-    p_dept dept.deptno%type
+    p_dept in out dept.deptno%type,
+    p_dname out dept.dname%type,
+    p_loc out dept.loc%type
 )
 is
-    v_deptno dept.deptno%type;
-    v_dname dept.dname%type;
-    v_loc dept.loc%type;
+    v_deptno dept.deptno%type := &p_dept;
+    v_dname dept.dname%type := p_dname;
+    v_loc dept.loc%type := p_loc;
 begin
     select deptno 부서_번호, dname 부서_이름, loc 지역
     into v_deptno,v_dname,v_loc
     from dept
-    where deptno = p_dept;
-    
-    dbms_output.put_line('부서번호: '|| v_deptno);
-    dbms_output.put_line('부서_이름: '|| v_dname);
-    dbms_output.put_line('지역: '|| v_loc);
+    where deptno = v_deptno;
 end pro_dept_in;
 /
+--프로시저 실행
 accept input_dept prompt '부서번호 입력'
 declare
     v_dept dept.deptno%type := &input_dept;
+    v_dname dept.dname%type;
+    v_loc dept.loc%type;
 begin
-    pro_dept_in(v_dept);
+    pro_dept_in(v_dept,v_dname,v_loc);
+    dbms_output.put_line('부서번호: '|| v_dept);
+    dbms_output.put_line('부서_이름: '|| v_dname);
+    dbms_output.put_line('지역: '|| v_loc);
 end;
+/
+--execute로 실행하기 위한 프로시져 작성
+--프로시저 pro_dept_in2 작성
+create or replace procedure pro_dept_in2(
+    p_deptno dept.deptno%type
+)
+is
+    v_deptno dept.deptno%type;
+    v_dname  dept.dname%type;
+    v_loc    dept.loc%type;
+begin
+    select deptno, dname,loc into v_deptno,v_dname,v_loc
+    from dept
+    where deptno = p_deptno;
+    dbms_output.put_line('부서번호 :' || v_deptno);
+    dbms_output.put_line('부서명 :' || v_dname);
+    dbms_output.put_line('지역 :' || v_loc);
+
+end pro_dept_in2;
+/
+
+--프로시저 실행
+execute pro_dept_in2(10);
+
+
+--2
+-- 함수  func_date_kor ==> YYYY년MM월DD일 형태로 출력
+create or REPLACE FUNCTION func_date_kor(
+     in_date DATE
+)
+return varchar2
+is
+begin
+    return to_char(in_date, 'YYYY"년"MM"월"DD"일"');
+end;
+/
+
+select ename, func_date_kor(hiredate) as hiredate
+from emp
+where empno = 7369;
+
+
+
+
